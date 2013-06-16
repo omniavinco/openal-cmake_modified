@@ -1,7 +1,7 @@
 # cmake project file by Prakash Punnoor
 CMAKE_MINIMUM_REQUIRED(VERSION 2.0)
 
-SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/admin/CMakeModules")
+SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/admin/CMakeModules")
 PROJECT(Alut C)
 SET(PACKAGE "freealut")
 SET(PACKAGE_TARNAME "freealut")
@@ -175,9 +175,9 @@ SET(requirements "")
 # static linking dependecies are broken, so pthread isn't needed currently
 SET(PTHREAD_LIBS ${CMAKE_THREAD_LIBS_INIT})
 
-CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/admin/pkgconfig/freealut.pc.in
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/admin/pkgconfig/freealut.pc.in
                ${CMAKE_BINARY_DIR}/admin/pkgconfig/freealut.pc @ONLY)
-CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/admin/pkgconfig/freealut-config.in
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/admin/pkgconfig/freealut-config.in
                ${CMAKE_BINARY_DIR}/admin/pkgconfig/freealut-config @ONLY)
 INSTALL_PROGRAMS(/bin FILES admin/pkgconfig/freealut-config)
 INSTALL_FILES(/lib/pkgconfig FILES admin/pkgconfig/freealut.pc)
