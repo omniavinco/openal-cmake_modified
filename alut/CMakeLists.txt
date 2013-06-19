@@ -1,6 +1,10 @@
 # cmake project file by Prakash Punnoor
 CMAKE_MINIMUM_REQUIRED(VERSION 2.0)
 
+IF(COMMAND CMAKE_POLICY)
+  CMAKE_POLICY(SET CMP0003 NEW)
+ENDIF()
+
 SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/admin/CMakeModules")
 PROJECT(Alut C)
 SET(PACKAGE "freealut")
@@ -72,28 +76,28 @@ ADD_DEFINE("__NO_CTYPE 1")
 ADD_DEFINITIONS(-DHAVE_CONFIG_H)
 ADD_DEFINITIONS(-DNDEBUG)
 
-
-IF(NOT DEFINED OPENAL_INCLUDE_DIR)
+IF(NOT OPENAL_FOUND)
   FIND_LIBRARY(OPENAL_LIB NAMES openal openal32 PATHS /usr/lib /usr/local/lib ${OPENAL_LIB_DIR})
   IF(OPENAL_LIB MATCHES "NOTFOUND")
     MESSAGE(FATAL_ERROR "OpenAL not installed, cannot build alut - aborting.")
   ENDIF(OPENAL_LIB MATCHES "NOTFOUND")
 
   IF(UNIX)
-   SET(ADD_LIBS ${ADD_LIBS} m)
+    LIST(APPEND ADD_LIBS m)
   ENDIF(UNIX)
 
   SET(CMAKE_REQUIRED_INCLUDES ${OPENAL_INCLUDE_DIR})
-  CHECK_INCLUDE_FILES("AL/alc.h;AL/al.h;" AL_HEADERS)
+  CHECK_INCLUDE_FILES("AL/alc.h;AL/al.h" AL_HEADERS)
   IF(NOT AL_HEADERS)
     MESSAGE(FATAL_ERROR "OpenAL header files not found - aborting.")
   ENDIF(NOT AL_HEADERS)
-ENDIF(NOT DEFINED OPENAL_INCLUDE_DIR)
+ELSE()
+  SET(OPENAL_LIB ${OPENAL_LIBRARY})
+ENDIF()
 
 IF(DEFINED OPENAL_INCLUDE_DIR)
   INCLUDE_DIRECTORIES(${OPENAL_INCLUDE_DIR})
 ENDIF(DEFINED OPENAL_INCLUDE_DIR)
-
 # checks for unistd.h and time.h, as well
 FIND_PACKAGE(SleepFunction)
 
@@ -116,20 +120,24 @@ IF(WIN32)
   ENDIF(HAVE___INT8)
 ENDIF(WIN32)
 
-IF(HAVE_UNISTD_H)
-  CHECK_FUNCTION_DEFINE("
-  #include <sys/types.h>
-  #include <sys/stat.h>
-  #include <unistd.h>
-  " stat "(\"\", (struct stat*)0)" HAVE_STAT)
-ENDIF(HAVE_UNISTD_H)
+IF(HAVE_STAT)
+  ADD_DEFINE("HAVE_STAT 1")
+ELSE()
+  IF(HAVE_UNISTD_H)
+    CHECK_FUNCTION_DEFINE("
+    #include <sys/types.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
+    " stat "(\"\", (struct stat*)0)" HAVE_STAT)
+  ENDIF(HAVE_UNISTD_H)
 
-IF(NOT HAVE_STAT)
-  CHECK_FUNCTION_DEFINE("
-  #include <sys/types.h>
-  #include <sys/stat.h>
-  " _stat "(\"\", (struct _stat*)0)" HAVE__STAT)
-ENDIF(NOT HAVE_STAT)
+  IF(NOT HAVE_STAT)
+    CHECK_FUNCTION_DEFINE("
+    #include <sys/types.h>
+    #include <sys/stat.h>
+    " _stat "(\"\", (struct _stat*)0)" HAVE__STAT)
+  ENDIF(NOT HAVE_STAT)
+ENDIF()
 
 # compiler specific settings
 FIND_PACKAGE(CompilerAttribute)
@@ -159,7 +167,6 @@ IF(BUILD_STATIC)
     INSTALL_FILES(/lib FILES ${CMAKE_STATIC_LIBRARY_PREFIX}alut${CMAKE_STATIC_LIBRARY_SUFFIX})
   ENDIF(NOT WIN32)
 ENDIF(BUILD_STATIC)
-
 
 ADD_LIBRARY(alut SHARED ${ALUT_SOURCES})
 SET_TARGET_PROPERTIES(alut PROPERTIES VERSION ${VERSION} SOVERSION ${MAJOR_VERSION})
